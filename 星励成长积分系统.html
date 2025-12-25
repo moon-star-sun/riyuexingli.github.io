@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>四年级13班星星积分系统</title>
+    <style>
+        body {
+            font-family: "微软雅黑", Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            width: 90%;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .control-panel {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .reset-button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .reset-button:hover {
+            background-color: #c0392b;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .star-button {
+            padding: 8px 12px;
+            margin: 2px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            color: white;
+            font-size: 0.9em;
+        }
+        .star-button.add {
+            background: #27ae60;
+        }
+        .star-button.remove {
+            background: #e74c3c;
+        }
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            color: white;
+        }
+        .wisdom-badge { background: #27ae60; }
+        .courage-badge { background: #e67e22; }
+        .rank-list {
+            list-style: none;
+            padding: 0;
+        }
+        .rank-item {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #e8f5e9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .rank-item.gain {
+            background-color: #dff0d8;
+        }
+        .rank-item.lose {
+            background-color: #ffebee;
+        }
+        .feedback {
+            margin-top: 30px;
+        }
+        .feedback h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .feedback h3 {
+            color: #3498db;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌠 四年级13班星星积分系统</h1>
+        
+        <div class="control-panel">
+            <button class="reset-button" onclick="resetSemesterScores()">🔄 学期积分清零</button>
+            <button class="reset-button" style="background-color: #3498db; margin-left: 10px;" onclick="refreshNames()">🔄 刷新姓名列表</button>
+        </div>
+
+        <table id="starTable">
+            <thead>
+                <tr>
+                    <th>学号</th>
+                    <th>姓名</th>
+                    <th>智慧星</th>
+                    <th>勇气星</th>
+                    <th>超能宝石</th>
+                    <th>操作</th>
+                    <th>排名</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <div class="feedback">
+            <h2>📊 今日之星排行榜</h2>
+            <div style="display: flex; gap: 30px;">
+                <div style="flex: 1;">
+                    <h3>🏆 得星达人 TOP5</h3>
+                    <ul id="topGain" class="rank-list"></ul>
+                </div>
+                <div style="flex: 1;">
+                    <h3>⚠ 需努力同学 TOP5</h3>
+                    <ul id="topLose" class="rank-list"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+// 学生姓名映射表（新的虚构名单）
+const STUDENT_NAMES = {
+  "001": "张三", "002": "李四", "003": "王五",
+  "004": "赵六", "005": "孙七", "006": "周八",
+  "007": "吴九", "008": "郑十", "009": "钱一",
+  "010": "孙二", "011": "周小", "012": "吴大",
+  "013": "郑华", "014": "钱明", "015": "冯伟",
+  "017": "陈强", "018": "褚丽", "019": "卫芳",
+  "020": "蒋斌", "021": "沈琳", "022": "韩东",
+  "023": "杨婷", "024": "朱佳", "025": "秦磊",
+  "026": "尤敏", "027": "许杰", "028": "何静",
+  "029": "吕洋", "030": "施琪", "031": "张宇",
+  "032": "孔浩", "033": "曹颖", "034": "严军",
+  "035": "华琳", "036": "金鑫", "038": "魏娜",
+  "039": "陶阳", "040": "姜博", "041": "戚丽",
+  "043": "谢敏", "044": "邹杰", "046": "喻婷",
+  "047": "柏浩", "048": "水琳", "049": "窦军",
+  "050": "章颖", "051": "云博", "052": "苏丽",
+  "053": "潘杰", "054": "葛琳", "055": "奚军",
+  "056": "范颖", "057": "彭博", "058": "郎丽",
+  "059": "鲁杰"
+};
+
+// 从localStorage初始化学生数据
+let students = JSON.parse(localStorage.getItem('students')) || {};
+let dailyRecords = JSON.parse(localStorage.getItem('dailyRecords')) || {};
+
+// 初始化学生数据结构 - 确保使用新的姓名
+const studentIds = ["001","002","003","004","005","006","007","008","009","010",
+"011","012","013","014","015","017","018","019","020","021","022","023","024","025",
+"026","027","028","029","030","031","032","033","034","035","036","038","039","040",
+"041","043","044","046","047","048","049","050","051","052","053","054","055","056",
+"057","058","059"];
+
+// 强制更新姓名为新名单
+studentIds.forEach(id => {
+    if (!students[id]) {
+        students[id] = { 
+            name: STUDENT_NAMES[id] || "", 
+            wisdom: 0, 
+            courage: 0, 
+            gems: 0 
+        };
+    } else {
+        // 关键修改：无论之前是什么名字，都更新为新名单中的名字
+        students[id].name = STUDENT_NAMES[id] || "";
+    }
+});
+
+// 保存更新后的姓名到本地存储
+localStorage.setItem('students', JSON.stringify(students));
+
+// 新增：刷新姓名列表的函数
+function refreshNames() {
+    studentIds.forEach(id => {
+        students[id].name = STUDENT_NAMES[id] || "";
+    });
+    localStorage.setItem('students', JSON.stringify(students));
+    updateSystem();
+    alert("姓名列表已更新！");
+}
+
+// 学期积分清零函数
+function resetSemesterScores() {
+    const confirmReset = confirm("确定要进行学期积分清零吗？此操作将清除所有学生的星星和宝石数据，且无法恢复！");
+    if (!confirmReset) return;
+
+    const finalConfirm = confirm("再次确认：所有积分将被清零，是否继续？");
+    if (!finalConfirm) return;
+
+    for (const id in students) {
+        students[id].wisdom = 0;
+        students[id].courage = 0;
+        students[id].gems = 0;
+        // 保留新的姓名
+        students[id].name = STUDENT_NAMES[id] || "";
+    }
+
+    dailyRecords = {};
+
+    localStorage.setItem('students', JSON.stringify(students));
+    localStorage.setItem('dailyRecords', JSON.stringify(dailyRecords));
+
+    updateSystem();
+    
+    alert("学期积分已成功清零！");
+}
+
+function modifyStars(type, action) {
+    const row = event.target.parentElement.parentElement.parentElement;
+    const id = row.cells[0].textContent;
+    const current = students[id][type] || 0;
+    const change = action === 'add' ? 1 : -1;
+    students[id][type] = Math.max(current + change, 0);
+
+    // 记录每日变化
+    const today = new Date().toISOString().split('T')[0];
+    if (!dailyRecords[today]) {
+        dailyRecords[today] = [];
+    }
+    dailyRecords[today].push({
+        id: id,
+        name: students[id].name || id,
+        type: type,
+        change: change
+    });
+
+    localStorage.setItem('students', JSON.stringify(students));
+    localStorage.setItem('dailyRecords', JSON.stringify(dailyRecords));
+    updateSystem();
+}
+
+function exchangeGems(id) {
+    const student = students[id];
+    const totalStars = student.wisdom + student.courage;
+    if (totalStars >= 10) {
+        let starsToRemove = 10;
+        if (student.wisdom >= 5 && student.courage >= 5) {
+            student.wisdom -= 5;
+            student.courage -= 5;
+        } else {
+            if (student.wisdom > student.courage) {
+                let diff = Math.min(starsToRemove, student.wisdom);
+                student.wisdom -= diff;
+                starsToRemove -= diff;
+                if (starsToRemove > 0) {
+                    student.courage -= starsToRemove;
+                }
+            } else {
+                let diff = Math.min(starsToRemove, student.courage);
+                student.courage -= diff;
+                starsToRemove -= diff;
+                if (starsToRemove > 0) {
+                    student.wisdom -= starsToRemove;
+                }
+            }
+        }
+        student.gems = (student.gems || 0) + 1;
+        localStorage.setItem('students', JSON.stringify(students));
+        alert("兑换完成！");
+    } else {
+        alert("星星不足，要加油！");
+    }
+    updateTable();
+}
+
+function updateSystem() {
+    updateTable();
+    updateRanking();
+}
+
+function updateTable() {
+    const tbody = document.getElementById('starTable').getElementsByTagName('tbody')[0];
+    tbody.innerHTML = '';
+    for (const id in students) {
+        const student = students[id];
+        const row = tbody.insertRow();
+        row.insertCell(0).textContent = id;
+        row.insertCell(1).textContent = student.name || id;
+        const wisdomCell = row.insertCell(2);
+        wisdomCell.textContent = student.wisdom || 0;
+        const courageCell = row.insertCell(3);
+        courageCell.textContent = student.courage || 0;
+        const gemsCell = row.insertCell(4);
+        gemsCell.textContent = student.gems || 0;
+        const actionCell = row.insertCell(5);
+        const exchangeButton = document.createElement('button');
+        exchangeButton.textContent = '兑换';
+        exchangeButton.onclick = function() { exchangeGems(id); };
+        if (student.wisdom + student.courage < 10) {
+            exchangeButton.disabled = true;
+        }
+        actionCell.appendChild(exchangeButton);
+        const starButtonsWisdom = document.createElement('div');
+        starButtonsWisdom.innerHTML = `
+            <button class="star-button add" onclick="modifyStars('wisdom', 'add')">+</button>
+            <button class="star-button remove" onclick="modifyStars('wisdom', 'remove')">-</button>
+        `;
+        wisdomCell.appendChild(starButtonsWisdom);
+        const starButtonsCourage = document.createElement('div');
+        starButtonsCourage.innerHTML = `
+            <button class="star-button add" onclick="modifyStars('courage', 'add')">+</button>
+            <button class="star-button remove" onclick="modifyStars('courage', 'remove')">-</button>
+        `;
+        courageCell.appendChild(starButtonsCourage);
+        const rankCell = row.insertCell(6);
+        rankCell.textContent = getRank(id);
+    }
+}
+
+function updateRanking() {
+    const topGainList = document.getElementById('topGain');
+    const topLoseList = document.getElementById('topLose');
+    const today = new Date().toISOString().split('T')[0];
+    const records = dailyRecords[today] || [];
+
+    const studentChanges = {};
+    records.forEach(record => {
+        if (!studentChanges[record.id]) {
+            studentChanges[record.id] = { name: record.name, gain: 0, lose: 0 };
+        }
+        if (record.change > 0) {
+            studentChanges[record.id].gain += record.change;
+        } else {
+            studentChanges[record.id].lose += Math.abs(record.change);
+        }
+    });
+
+    const topGain = Object.values(studentChanges)
+        .sort((a, b) => b.gain - a.gain)
+        .slice(0, 5)
+        .map(student => ({ name: student.name, change: student.gain, type: 'gain' }));
+
+    const topLose = Object.values(studentChanges)
+        .sort((a, b) => b.lose - a.lose)
+        .slice(0, 5)
+        .map(student => ({ name: student.name, change: student.lose, type: 'lose' }));
+
+    topGainList.innerHTML = topGain.map(r => `<li class="rank-item gain">${r.name} +${r.change} <span class="badge ${r.type}">${r.type}</span></li>`).join('');
+    topLoseList.innerHTML = topLose.map(r => `<li class="rank-item lose">${r.name} -${r.change} <span class="badge ${r.type}">${r.type}</span></li>`).join('');
+}
+
+function getRank(id) {
+    const scores = Object.values(students).map(s => s.wisdom + s.courage);
+    const sortedScores = scores.sort((a, b) => b - a);
+    const rank = sortedScores.indexOf(students[id].wisdom + students[id].courage) + 1;
+    return rank;
+}
+
+// 初始化系统
+updateSystem();
+</script>
+</body>
+</html>

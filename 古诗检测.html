@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>唐诗背诵挑战</title>
+  <!-- 引入Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- 配置Tailwind自定义主题 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            paper: '#f5f1e6',
+            ink: '#3a2e21',
+            accent: '#9c2c1a',
+            gold: '#d4af37',
+            bamboo: '#708643'
+          },
+          fontFamily: {
+            song: ['"Noto Serif SC"', 'serif']
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .scroll-bg {
+        background-image: url('https://picsum.photos/id/152/1200/800');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+      }
+      .paper-texture {
+        background-color: rgba(245, 241, 230, 0.9);
+        background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%239C92AC' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+      }
+      .poem-frame {
+        border-image: url('https://picsum.photos/id/175/200/200') 30 stretch;
+      }
+      .ink-splash {
+        position: relative;
+      }
+      .ink-splash::after {
+        content: '';
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        width: 60px;
+        height: 60px;
+        background-image: url('https://picsum.photos/id/106/100/100');
+        background-size: contain;
+        background-repeat: no-repeat;
+        opacity: 0.2;
+        z-index: 0;
+      }
+      .bamboo-border {
+        background-image: url('https://picsum.photos/id/137/100/800');
+        background-size: cover;
+        background-position: center;
+      }
+    }
+  </style>
+  
+  <!-- 引入中文字体 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="bg-paper text-ink font-song min-h-screen scroll-bg">
+  <!-- 页面容器 -->
+  <div class="container mx-auto px-4 py-8 max-w-4xl">
+    
+    <!-- 标题区域 -->
+    <header class="text-center mb-8 relative">
+      <div class="absolute -top-4 -left-4 md:left-0 text-gold opacity-30 text-6xl md:text-8xl">
+        <i class="fa fa-book"></i>
+      </div>
+      <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-accent relative z-10">唐诗背诵挑战</h1>
+      <p class="text-[clamp(1rem,2vw,1.25rem)] mt-2 italic">熟读唐诗三百首，不会作诗也会吟</p>
+      <div class="absolute -top-4 -right-4 md:right-0 text-gold opacity-30 text-6xl md:text-8xl">
+        <i class="fa fa-pencil"></i>
+      </div>
+    </header>
+    
+    <!-- 主游戏区域 -->
+    <main class="paper-texture rounded-lg shadow-xl p-6 md:p-10 relative overflow-hidden border-4 border-ink/10">
+      
+      <!-- 难度选择界面 -->
+      <section id="difficulty-selection" class="text-center">
+        <h2 class="text-2xl md:text-3xl mb-8 text-accent border-b-2 border-accent/30 pb-2">选择挑战难度</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          <!-- 初级难度 -->
+          <div class="difficulty-card cursor-pointer group transition-all duration-300 hover:scale-105 bg-paper rounded-lg p-6 shadow-md border-2 border-ink/20 hover:border-bamboo">
+            <div class="text-5xl text-bamboo mb-4">
+              <i class="fa fa-leaf"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2">初级</h3>
+            <p class="text-sm text-ink/70">适合唐诗初学者，选取耳熟能详的经典诗作</p>
+            <button data-difficulty="easy" class="mt-4 px-4 py-2 bg-bamboo/10 hover:bg-bamboo/20 text-bamboo rounded transition-colors duration-300">
+              开始挑战
+            </button>
+          </div>
+          
+          <!-- 中级难度 -->
+          <div class="difficulty-card cursor-pointer group transition-all duration-300 hover:scale-105 bg-paper rounded-lg p-6 shadow-md border-2 border-ink/20 hover:border-gold">
+            <div class="text-5xl text-gold mb-4">
+              <i class="fa fa-star"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2">中级</h3>
+            <p class="text-sm text-ink/70">适合有一定基础的学习者，包含稍具难度的诗作</p>
+            <button data-difficulty="medium" class="mt-4 px-4 py-2 bg-gold/10 hover:bg-gold/20 text-gold rounded transition-colors duration-300">
+              开始挑战
+            </button>
+          </div>
+          
+          <!-- 高级难度 -->
+          <div class="difficulty-card cursor-pointer group transition-all duration-300 hover:scale-105 bg-paper rounded-lg p-6 shadow-md border-2 border-ink/20 hover:border-accent">
+            <div class="text-5xl text-accent mb-4">
+              <i class="fa fa-trophy"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2">高级</h3>
+            <p class="text-sm text-ink/70">适合唐诗爱好者，包含经典但不那么常见的佳作</p>
+            <button data-difficulty="hard" class="mt-4 px-4 py-2 bg-accent/10 hover:bg-accent/20 text-accent rounded transition-colors duration-300">
+              开始挑战
+            </button>
+          </div>
+        </div>
+      </section>
+      
+      <!-- 游戏界面 -->
+      <section id="game-container" class="hidden">
+        <!-- 进度指示器 -->
+        <div class="flex justify-between items-center mb-6">
+          <div class="text-sm">
+            难度: <span id="current-difficulty" class="font-bold"></span>
+          </div>
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 rounded-full bg-ink/30" id="progress-1"></div>
+            <div class="w-3 h-3 rounded-full bg-ink/30" id="progress-2"></div>
+            <div class="w-3 h-3 rounded-full bg-ink/30" id="progress-3"></div>
+          </div>
+          <div class="text-sm">
+            题目: <span id="current-question">1</span>/3
+          </div>
+        </div>
+        
+        <!-- 诗歌展示区 -->
+        <div class="poem-display mb-8 p-6 bg-paper/50 rounded-lg border-2 border-ink/10 ink-splash">
+          <h3 class="text-xl md:text-2xl font-bold text-center mb-4" id="poem-title"></h3>
+          <p class="text-center text-sm mb-6" id="poem-author"></p>
+          <div class="poem-content text-lg md:text-xl leading-loose text-center whitespace-pre-line" id="poem-content"></div>
+        </div>
+        
+        <!-- 选项区域 -->
+        <div class="options-container grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <button class="option-btn p-4 bg-ink/5 hover:bg-ink/10 rounded-lg border border-ink/20 text-left transition-all duration-200 hover:shadow-md" data-option="A"></button>
+          <button class="option-btn p-4 bg-ink/5 hover:bg-ink/10 rounded-lg border border-ink/20 text-left transition-all duration-200 hover:shadow-md" data-option="B"></button>
+          <button class="option-btn p-4 bg-ink/5 hover:bg-ink/10 rounded-lg border border-ink/20 text-left transition-all duration-200 hover:shadow-md" data-option="C"></button>
+          <button class="option-btn p-4 bg-ink/5 hover:bg-ink/10 rounded-lg border border-ink/20 text-left transition-all duration-200 hover:shadow-md" data-option="D"></button>
+        </div>
+        
+        <!-- 反馈信息 -->
+        <div id="feedback" class="hidden mb-6 p-4 rounded-lg text-center"></div>
+        
+        <!-- 下一题按钮 -->
+        <div class="text-center">
+          <button id="next-btn" class="hidden px-6 py-3 bg-accent text-paper rounded-lg hover:bg-accent/90 transition-colors duration-300">
+            下一题 <i class="fa fa-arrow-right ml-2"></i>
+          </button>
+        </div>
+      </section>
+      
+      <!-- 结果点评界面 -->
+      <section id="result-section" class="hidden text-center">
+        <div class="mb-8 text-6xl text-gold">
+          <i class="fa fa-certificate"></i>
+        </div>
+        <h2 class="text-2xl md:text-3xl mb-4 text-accent">挑战完成！</h2>
+        <div class="result-content p-6 bg-paper/50 rounded-lg border border-ink/20 mb-8">
+          <p class="text-lg mb-4" id="result-score"></p>
+          <p class="text-lg" id="personal-comment"></p>
+        </div>
+        <button id="restart-btn" class="px-6 py-3 bg-ink text-paper rounded-lg hover:bg-ink/80 transition-colors duration-300">
+          重新挑战 <i class="fa fa-refresh ml-2"></i>
+        </button>
+      </section>
+    </main>
+    
+    <!-- 页脚 -->
+    <footer class="mt-12 text-center text-ink/60 text-sm">
+      <p>唐诗背诵挑战 &copy; 2023 | 古典文学互动学习</p>
+    </footer>
+  </div>
+
+  <script>
+    // 唐诗题库 - 按难度分级
+    const poemBank = {
+      easy: [
+        {
+          title: "静夜思",
+          author: "唐·李白",
+          content: "床前明月光，疑是地上霜。举头望[空]明月，低头思故乡。",
+          blank: "空",
+          correct: "望",
+          options: ["看", "望", "观", "赏"]
+        },
+        {
+          title: "春晓",
+          author: "唐·孟浩然",
+          content: "春眠不[之]晓，处处闻啼鸟。夜来风雨声，花落知多少。",
+          blank: "之",
+          correct: "觉",
+          options: ["觉", "知", "晓", "醒"]
+        },
+        {
+          title: "悯农",
+          author: "唐·李绅",
+          content: "锄禾日当午，汗滴禾下[水]。谁知盘中餐，粒粒皆辛苦。",
+          blank: "水",
+          correct: "土",
+          options: ["田", "地", "土", "泥"]
+        },
+        {
+          title: "登鹳雀楼",
+          author: "唐·王之涣",
+          content: "白日依山尽，黄河入海[流]。欲穷千里目，更上一层楼。",
+          blank: "流",
+          correct: "流",
+          options: ["流", "去", "淌", "奔"]
+        },
+        {
+          title: "江雪",
+          author: "唐·柳宗元",
+          content: "千山鸟飞绝，万径人[踪]灭。孤舟蓑笠翁，独钓寒江雪。",
+          blank: "踪",
+          correct: "踪",
+          options: ["影", "踪", "迹", "影"]
+        }
+      ],
+      medium: [
+        {
+          title: "望庐山瀑布",
+          author: "唐·李白",
+          content: "日照香炉生紫烟，遥看瀑布挂前[天]。飞流直下三千尺，疑是银河落九天。",
+          blank: "天",
+          correct: "川",
+          options: ["川", "山", "峰", "天"]
+        },
+        {
+          title: "早发白帝城",
+          author: "唐·李白",
+          content: "朝辞白帝彩云间，千里江陵一日[还]。两岸猿声啼不住，轻舟已过万重山。",
+          blank: "还",
+          correct: "还",
+          options: ["返", "回", "还", "归"]
+        },
+        {
+          title: "黄鹤楼送孟浩然之广陵",
+          author: "唐·李白",
+          content: "故人西辞黄鹤楼，烟花三月下扬[州]。孤帆远影碧空尽，唯见长江天际流。",
+          blank: "州",
+          correct: "州",
+          options: ["州", "洲", "城", "镇"]
+        },
+        {
+          title: "春夜喜雨",
+          author: "唐·杜甫",
+          content: "好雨知时节，当春乃发[生]。随风潜入夜，润物细无声。",
+          blank: "生",
+          correct: "生",
+          options: ["生", "降", "临", "至"]
+        },
+        {
+          title: "望洞庭",
+          author: "唐·刘禹锡",
+          content: "湖光秋月两相和，潭面无风镜未[磨]。遥望洞庭山水翠，白银盘里一青螺。",
+          blank: "磨",
+          correct: "磨",
+          options: ["磨", "拭", "擦", "洗"]
+        }
+      ],
+      hard: [
+        {
+          title: "山居秋暝",
+          author: "唐·王维",
+          content: "空山新雨后，天气晚来[秋]。明月松间照，清泉石上流。",
+          blank: "秋",
+          correct: "秋",
+          options: ["秋", "凉", "寒", "爽"]
+        },
+        {
+          title: "送元二使安西",
+          author: "唐·王维",
+          content: "渭城朝雨浥轻尘，客舍青青柳色[新]。劝君更尽一杯酒，西出阳关无故人。",
+          blank: "新",
+          correct: "新",
+          options: ["新", "青", "浓", "深"]
+        },
+        {
+          title: "登高",
+          author: "唐·杜甫",
+          content: "风急天高猿啸哀，渚清沙白鸟飞[回]。无边落木萧萧下，不尽长江滚滚来。",
+          blank: "回",
+          correct: "回",
+          options: ["回", "还", "返", "归"]
+        },
+        {
+          title: "锦瑟",
+          author: "唐·李商隐",
+          content: "锦瑟无端五十弦，一弦一柱思华[年]。庄生晓梦迷蝴蝶，望帝春心托杜鹃。",
+          blank: "年",
+          correct: "年",
+          options: ["年", "章", "时", "光"]
+        },
+        {
+          title: "钱塘湖春行",
+          author: "唐·白居易",
+          content: "孤山寺北贾亭西，水面初平云脚[低]。几处早莺争暖树，谁家新燕啄春泥。",
+          blank: "低",
+          correct: "低",
+          options: ["低", "垂", "落", "下"]
+        }
+      ]
+    };
+
+    // 游戏状态变量
+    let currentDifficulty = '';
+    let currentQuestionIndex = 0;
+    let selectedPoems = [];
+    let score = 0;
+
+    // DOM 元素
+    const difficultySelection = document.getElementById('difficulty-selection');
+    const gameContainer = document.getElementById('game-container');
+    const resultSection = document.getElementById('result-section');
+    const currentDifficultyEl = document.getElementById('current-difficulty');
+    const currentQuestionEl = document.getElementById('current-question');
+    const poemTitle = document.getElementById('poem-title');
+    const poemAuthor = document.getElementById('poem-author');
+    const poemContent = document.getElementById('poem-content');
+    const optionBtns = document.querySelectorAll('.option-btn');
+    const feedback = document.getElementById('feedback');
+    const nextBtn = document.getElementById('next-btn');
+    const resultScore = document.getElementById('result-score');
+    const personalComment = document.getElementById('personal-comment');
+    const restartBtn = document.getElementById('restart-btn');
+    const progressIndicators = [
+      document.getElementById('progress-1'),
+      document.getElementById('progress-2'),
+      document.getElementById('progress-3')
+    ];
+
+    // 初始化难度选择按钮事件
+    document.querySelectorAll('.difficulty-card button').forEach(button => {
+      button.addEventListener('click', () => {
+        currentDifficulty = button.getAttribute('data-difficulty');
+        startGame();
+      });
+    });
+
+    // 开始游戏
+    function startGame() {
+      // 隐藏难度选择，显示游戏界面
+      difficultySelection.classList.add('hidden');
+      gameContainer.classList.remove('hidden');
+      
+      // 初始化游戏状态
+      currentQuestionIndex = 0;
+      score = 0;
+      currentDifficultyEl.textContent = 
+        currentDifficulty === 'easy' ? '初级' : 
+        currentDifficulty === 'medium' ? '中级' : '高级';
+      
+      // 从对应难度题库中随机选择3首诗
+      selectedPoems = getRandomPoems(currentDifficulty, 3);
+      
+      // 重置进度指示器
+      progressIndicators.forEach(indicator => {
+        indicator.classList.remove('bg-accent', 'bg-bamboo', 'bg-gold');
+        indicator.classList.add('bg-ink/30');
+      });
+      
+      // 加载第一题
+      loadQuestion(currentQuestionIndex);
+    }
+
+    // 从题库中随机选择指定数量的诗
+    function getRandomPoems(difficulty, count) {
+      const poems = [...poemBank[difficulty]];
+      const selected = [];
+      
+      // 随机选择指定数量的诗，不重复
+      for (let i = 0; i < count; i++) {
+        const randomIndex = Math.floor(Math.random() * poems.length);
+        selected.push(poems.splice(randomIndex, 1)[0]);
+      }
+      
+      return selected;
+    }
+
+    // 加载题目
+    function loadQuestion(index) {
+      if (index >= selectedPoems.length) {
+        showResult();
+        return;
+      }
+      
+      const poem = selectedPoems[index];
+      
+      // 更新界面显示
+      poemTitle.textContent = poem.title;
+      poemAuthor.textContent = poem.author;
+      
+      // 替换空白处为提示
+      const displayContent = poem.content.replace(`[${poem.blank}]`, '______');
+      poemContent.textContent = displayContent;
+      
+      // 更新题目计数
+      currentQuestionEl.textContent = index + 1;
+      
+      // 重置选项和反馈
+      optionBtns.forEach(btn => {
+        btn.disabled = false;
+        btn.classList.remove('bg-green-100', 'border-green-500', 'bg-red-100', 'border-red-500');
+        btn.classList.add('bg-ink/5', 'border-ink/20');
+      });
+      
+      feedback.classList.add('hidden');
+      nextBtn.classList.add('hidden');
+      
+      // 设置选项
+      const options = [...poem.options];
+      optionBtns.forEach((btn, i) => {
+        // 随机排序选项
+        const randomIndex = Math.floor(Math.random() * options.length);
+        const optionText = options.splice(randomIndex, 1)[0];
+        btn.textContent = `${btn.getAttribute('data-option')}. ${optionText}`;
+        btn.setAttribute('data-value', optionText);
+      });
+    }
+
+    // 选项按钮点击事件
+    optionBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // 禁用所有选项按钮
+        optionBtns.forEach(b => b.disabled = true);
+        
+        const selectedValue = btn.getAttribute('data-value');
+        const currentPoem = selectedPoems[currentQuestionIndex];
+        const isCorrect = selectedValue === currentPoem.correct;
+        
+        // 显示反馈
+        feedback.classList.remove('hidden');
+        if (isCorrect) {
+          score++;
+          feedback.textContent = "回答正确！真棒！";
+          feedback.classList.add('bg-green-100', 'text-green-800');
+          feedback.classList.remove('bg-red-100', 'text-red-800');
+          btn.classList.remove('bg-ink/5', 'border-ink/20');
+          btn.classList.add('bg-green-100', 'border-green-500');
+        } else {
+          feedback.textContent = `回答错误。正确答案是：${currentPoem.correct}`;
+          feedback.classList.add('bg-red-100', 'text-red-800');
+          feedback.classList.remove('bg-green-100', 'text-green-800');
+          btn.classList.remove('bg-ink/5', 'border-ink/20');
+          btn.classList.add('bg-red-100', 'border-red-500');
+          
+          // 高亮正确答案
+          optionBtns.forEach(b => {
+            if (b.getAttribute('data-value') === currentPoem.correct) {
+              b.classList.remove('bg-ink/5', 'border-ink/20');
+              b.classList.add('bg-green-100', 'border-green-500');
+            }
+          });
+        }
+        
+        // 更新进度指示器
+        progressIndicators[currentQuestionIndex].classList.remove('bg-ink/30');
+        progressIndicators[currentQuestionIndex].classList.add(isCorrect ? 'bg-accent' : 'bg-ink/60');
+        
+        // 显示下一题按钮
+        nextBtn.classList.remove('hidden');
+      });
+    });
+
+    // 下一题按钮点击事件
+    nextBtn.addEventListener('click', () => {
+      currentQuestionIndex++;
+      loadQuestion(currentQuestionIndex);
+    });
+
+    // 显示结果
+    function showResult() {
+      gameContainer.classList.add('hidden');
+      resultSection.classList.remove('hidden');
+      
+      // 显示得分
+      resultScore.textContent = `你答对了 ${score} 题，共 3 题。`;
+      
+      // 根据得分给出个性化点评
+      let comment = '';
+      const difficultyText = currentDifficulty === 'easy' ? '初级' : 
+                           currentDifficulty === 'medium' ? '中级' : '高级';
+      
+      if (score === 3) {
+        comment = `太厉害了！你对${difficultyText}唐诗的掌握非常出色，简直是小诗人附体！继续保持这份对古典文学的热爱，你会有更多收获。`;
+      } else if (score === 2) {
+        comment = `做得不错！你对${difficultyText}唐诗有很好的理解。再稍加努力，相信下次一定能全部答对，继续加油！`;
+      } else if (score === 1) {
+        comment = `还不错哦！你已经掌握了一些${difficultyText}唐诗的知识。多背诵，多理解，下次挑战一定会有进步的！`;
+      } else {
+        comment = `别灰心！唐诗的魅力需要慢慢体会。建议你多朗读，多记忆，相信经过练习，下次挑战你一定会有很大进步！`;
+      }
+      
+      personalComment.textContent = comment;
+    }
+
+    // 重新开始按钮点击事件
+    restartBtn.addEventListener('click', () => {
+      resultSection.classList.add('hidden');
+      difficultySelection.classList.remove('hidden');
+    });
+  </script>
+</body>
+</html>
