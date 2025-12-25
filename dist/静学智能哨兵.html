@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>课堂静音星</title>
+  <!-- 引入外部资源 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- 配置Tailwind -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            night: {
+              dark: '#0F1C3F',
+              medium: '#1A2B5C',
+              light: '#2D4273'
+            },
+            star: {
+              yellow: '#FFE162',
+              blue: '#6AD2FF',
+              purple: '#C28FFF'
+            }
+          },
+          fontFamily: {
+            comic: ['Comic Sans MS', 'Chalkboard SE', 'cursive']
+          },
+        },
+      }
+    }
+  </script>
+  
+  <!-- 自定义工具类 -->
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .star-glow {
+        filter: drop-shadow(0 0 10px rgba(255, 225, 98, 0.8));
+      }
+      .moon-glow {
+        filter: drop-shadow(0 0 15px rgba(106, 210, 255, 0.8));
+      }
+      .sun-glow {
+        filter: drop-shadow(0 0 20px rgba(255, 167, 70, 0.8));
+      }
+      .crown-glow {
+        filter: drop-shadow(0 0 25px rgba(255, 225, 98, 0.9));
+      }
+      .pulse-slow {
+        animation: pulse 3s infinite ease-in-out;
+      }
+      .float {
+        animation: float 3s infinite ease-in-out;
+      }
+      .timeline-line {
+        @apply absolute left-3 top-0 bottom-0 w-0.5 bg-star-blue/50;
+      }
+      .timeline-dot {
+        @apply absolute left-0 w-6 h-6 rounded-full bg-night-dark border-2 border-star-yellow z-10;
+      }
+    }
+  </style>
+  
+  <style>
+    /* 背景星空动画 */
+    .star-field {
+      background: transparent url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="50" cy="50" r="1" fill="white" opacity="0.8"/><circle cx="20" cy="30" r="0.5" fill="white" opacity="0.6"/><circle cx="70" cy="70" r="0.7" fill="white" opacity="0.7"/><circle cx="10" cy="80" r="0.3" fill="white" opacity="0.5"/><circle cx="90" cy="20" r="0.6" fill="white" opacity="0.6"/></svg>') repeat;
+      animation: star-move 80s linear infinite;
+    }
+    
+    @keyframes star-move {
+      from { background-position: 0 0; }
+      to { background-position: -1000px 1000px; }
+    }
+    
+    /* 悬浮动画 */
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    
+    /* 脉冲动画 */
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.8; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    
+    /* 星星形状 */
+    .star {
+      clip-path: polygon(50% 0%, 59% 38%, 100% 38%, 68% 61%, 79% 100%, 50% 78%, 21% 100%, 32% 61%, 0% 38%, 41% 38%);
+    }
+    
+    /* 滑块样式 */
+    input[type="range"] {
+      -webkit-appearance: none;
+      height: 10px;
+      border-radius: 5px;
+      background: #2D4273;
+      outline: none;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #FFE162;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(255, 225, 98, 0.8);
+    }
+    
+    /* 时间线动画 */
+    .timeline-item {
+      opacity: 0;
+      transform: translateY(10px);
+      animation: fadeIn 0.5s ease forwards;
+    }
+    
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-night-dark min-h-screen font-comic text-white overflow-x-hidden">
+  <!-- 星空背景 -->
+  <div class="star-field fixed inset-0 opacity-60 z-0"></div>
+  
+  <!-- 主容器 -->
+  <div class="container mx-auto px-4 py-4 relative z-10">
+    <!-- 标题 -->
+    <div class="text-center mb-4">
+      <h1 class="text-[clamp(1.8rem,5vw,3rem)] font-bold text-transparent bg-clip-text bg-gradient-to-r from-star-yellow via-star-blue to-star-purple drop-shadow-[0_0_10px_rgba(255,225,98,0.5)]">
+        课堂静音星
+      </h1>
+    </div>
+    
+    <!-- 主要内容区域 - 三栏布局 -->
+    <div class="flex flex-col lg:flex-row gap-6">
+      <!-- 左侧：倒计时和主功能区 -->
+      <div class="lg:w-1/3">
+        <!-- 倒计时显示 -->
+        <div class="max-w-md mx-auto mb-6 text-center">
+          <div class="bg-night-medium/80 backdrop-blur-sm rounded-full p-4 shadow-lg border border-star-yellow/30">
+            <p class="text-lg mb-1 text-star-blue">当前静音计时</p>
+            <div id="countdown" class="text-[clamp(2.5rem,10vw,4rem)] font-bold text-star-yellow drop-shadow-[0_0_10px_rgba(255,225,98,0.8)] pulse-slow">
+              60
+            </div>
+            <p id="status-text" class="mt-1 text-star-purple">请点击下方按钮启用麦克风</p>
+          </div>
+        </div>
+        
+        <!-- 圆形主容器 -->
+        <div class="relative mx-auto aspect-square max-w-md rounded-full bg-night-medium/70 backdrop-blur-md shadow-xl border border-star-blue/30 mb-6 overflow-hidden">
+          <!-- 分贝显示 -->
+          <div class="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+            <p class="text-star-purple text-lg">当前分贝</p>
+            <div id="decibel-display" class="text-[clamp(1.8rem,5vw,3rem)] font-bold text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">
+              0
+            </div>
+            <p class="text-sm text-white/70">dB</p>
+          </div>
+          
+          <!-- 声波动画 -->
+          <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3/4 h-24 flex items-center justify-center gap-1">
+            <div id="wave-1" class="w-2 h-8 bg-star-yellow rounded-full opacity-70"></div>
+            <div id="wave-2" class="w-2 h-12 bg-star-yellow rounded-full opacity-70"></div>
+            <div id="wave-3" class="w-2 h-16 bg-star-yellow rounded-full opacity-70"></div>
+            <div id="wave-4" class="w-2 h-12 bg-star-yellow rounded-full opacity-70"></div>
+            <div id="wave-5" class="w-2 h-8 bg-star-yellow rounded-full opacity-70"></div>
+          </div>
+          
+          <!-- 阈值显示 -->
+          <div class="absolute bottom-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center w-3/4">
+            <p class="text-star-blue text-lg mb-1">静音阈值: <span id="threshold-value">45</span> dB</p>
+            <input 
+              type="range" 
+              id="threshold-slider" 
+              min="30" 
+              max="70" 
+              value="45" 
+              class="w-full"
+            >
+          </div>
+        </div>
+        
+        <!-- 控制区 -->
+        <div class="flex flex-wrap justify-center gap-3">
+          <!-- 麦克风权限按钮 -->
+          <button id="mic-permission" class="bg-star-blue hover:bg-star-blue/80 px-5 py-2 rounded-full flex items-center gap-2 transition-all">
+            <i class="fa fa-microphone text-white"></i>
+            <span>启用麦克风</span>
+          </button>
+          
+          <!-- 音效开关 -->
+          <button id="sound-toggle" class="bg-night-light hover:bg-night-light/80 px-5 py-2 rounded-full flex items-center gap-2 transition-all">
+            <i class="fa fa-volume-off text-star-yellow"></i>
+            <span>音效: 关闭</span>
+          </button>
+          
+          <!-- 重置按钮 -->
+          <button id="reset-btn" class="bg-night-light hover:bg-night-light/80 px-5 py-2 rounded-full flex items-center gap-2 transition-all">
+            <i class="fa fa-refresh text-star-yellow"></i>
+            <span>重置进度</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- 中间：奖励展示区 -->
+      <div class="lg:w-1/3 flex items-center">
+        <div class="bg-night-medium/60 backdrop-blur-sm rounded-xl p-5 border border-star-purple/30 w-full max-w-md mx-auto">
+          <h2 class="text-xl text-center mb-3 text-star-yellow">成就进度</h2>
+          
+          <!-- 星星展示 -->
+          <div class="mb-4">
+            <p class="text-center mb-1 text-star-blue">星星 <span id="stars-count">0</span>/3</p>
+            <div class="flex justify-center gap-3">
+              <div id="star-1" class="w-10 h-10 bg-night-dark star border-2 border-star-yellow/50"></div>
+              <div id="star-2" class="w-10 h-10 bg-night-dark star border-2 border-star-yellow/50"></div>
+              <div id="star-3" class="w-10 h-10 bg-night-dark star border-2 border-star-yellow/50"></div>
+            </div>
+          </div>
+          
+          <!-- 月亮展示 -->
+          <div class="mb-4">
+            <p class="text-center mb-1 text-star-blue">月亮 <span id="moons-count">0</span>/3</p>
+            <div class="flex justify-center gap-3">
+              <div id="moon-1" class="w-10 h-10 bg-night-dark rounded-full border-2 border-star-blue/50"></div>
+              <div id="moon-2" class="w-10 h-10 bg-night-dark rounded-full border-2 border-star-blue/50"></div>
+              <div id="moon-3" class="w-10 h-10 bg-night-dark rounded-full border-2 border-star-blue/50"></div>
+            </div>
+          </div>
+          
+          <!-- 太阳展示 -->
+          <div class="mb-4">
+            <p class="text-center mb-1 text-star-blue">太阳 <span id="suns-count">0</span>/3</p>
+            <div class="flex justify-center gap-3">
+              <div id="sun-1" class="w-10 h-10 bg-night-dark rounded-full border-2 border-orange-300/50"></div>
+              <div id="sun-2" class="w-10 h-10 bg-night-dark rounded-full border-2 border-orange-300/50"></div>
+              <div id="sun-3" class="w-10 h-10 bg-night-dark rounded-full border-2 border-orange-300/50"></div>
+            </div>
+          </div>
+          
+          <!-- 皇冠展示 -->
+          <div>
+            <p class="text-center mb-1 text-star-blue">终极奖励</p>
+            <div class="flex justify-center">
+              <div id="crown" class="text-4xl opacity-30">👑</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 右侧：时间线记录区 -->
+      <div class="lg:w-1/3">
+        <div class="bg-night-medium/60 backdrop-blur-sm rounded-xl p-5 border border-star-purple/30 h-full">
+          <h2 class="text-xl text-center mb-4 text-star-yellow">挑战记录</h2>
+          
+          <!-- 时间线容器 -->
+          <div class="relative pl-8 space-y-6 max-h-[500px] overflow-y-auto pr-2">
+            <!-- 时间线中轴线 -->
+            <div class="timeline-line"></div>
+            
+            <!-- 时间线初始状态 -->
+            <div id="timeline-placeholder" class="text-center text-white/60 italic">
+              挑战开始后将显示记录...
+            </div>
+            
+            <!-- 时间线内容将通过JS动态添加 -->
+            <div id="timeline-container" class="space-y-6">
+              <!-- 动态内容区域 -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 迷你倒计时遮罩 -->
+  <div id="mini-countdown" class="fixed inset-0 bg-night-dark/90 flex flex-col items-center justify-center z-50 hidden">
+    <p class="text-2xl text-star-blue mb-4">太棒了！获得一颗星星！</p>
+    <div class="text-5xl mb-4 text-star-yellow drop-shadow-[0_0_15px_rgba(255,225,98,0.8)] float">⭐</div>
+    <p class="text-xl text-star-purple">下一轮开始于</p>
+    <div id="mini-timer" class="text-3xl text-white mt-2">10</div>
+  </div>
+
+  <script>
+    // 全局状态 - 新增时间线记录相关状态
+    const state = {
+      countdown: 60,
+      threshold: 45,
+      currentDb: 0,
+      isActive: false,
+      soundEnabled: false,
+      stars: 0,
+      moons: 0,
+      suns: 0,
+      hasCrown: false,
+      countdownInterval: null,
+      audioContext: null,
+      analyser: null,
+      microphone: null,
+      stream: null,
+      challengeStartTime: null, // 挑战开始时间
+      timelineItems: [] // 时间线记录
+    };
+    
+    // DOM元素 - 新增时间线相关元素
+    const elements = {
+      countdown: document.getElementById('countdown'),
+      decibelDisplay: document.getElementById('decibel-display'),
+      thresholdSlider: document.getElementById('threshold-slider'),
+      thresholdValue: document.getElementById('threshold-value'),
+      statusText: document.getElementById('status-text'),
+      soundToggle: document.getElementById('sound-toggle'),
+      resetBtn: document.getElementById('reset-btn'),
+      micPermission: document.getElementById('mic-permission'),
+      starsCount: document.getElementById('stars-count'),
+      moonsCount: document.getElementById('moons-count'),
+      sunsCount: document.getElementById('suns-count'),
+      crown: document.getElementById('crown'),
+      miniCountdown: document.getElementById('mini-countdown'),
+      miniTimer: document.getElementById('mini-timer'),
+      star1: document.getElementById('star-1'),
+      star2: document.getElementById('star-2'),
+      star3: document.getElementById('star-3'),
+      moon1: document.getElementById('moon-1'),
+      moon2: document.getElementById('moon-2'),
+      moon3: document.getElementById('moon-3'),
+      sun1: document.getElementById('sun-1'),
+      sun2: document.getElementById('sun-2'),
+      sun3: document.getElementById('sun-3'),
+      waves: [
+        document.getElementById('wave-1'),
+        document.getElementById('wave-2'),
+        document.getElementById('wave-3'),
+        document.getElementById('wave-4'),
+        document.getElementById('wave-5')
+      ],
+      timelineContainer: document.getElementById('timeline-container'),
+      timelinePlaceholder: document.getElementById('timeline-placeholder')
+    };
+    
+    // 音效
+    const sounds = {
+      success: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3'),
+      reset: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-unlocking-563.mp3'),
+      alert: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3')
+    };
+    
+    // 辅助函数：格式化时间
+    function formatTime(date) {
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      return `${hours}:${minutes}:${seconds}`;
+    }
+    
+    // 辅助函数：添加时间线记录
+    function addTimelineItem(type, message, icon = 'fa-clock-o', colorClass = 'text-white') {
+      // 隐藏占位文本
+      elements.timelinePlaceholder.classList.add('hidden');
+      
+      const now = new Date();
+      const timeString = formatTime(now);
+      
+      // 创建时间线项
+      const timelineItem = document.createElement('div');
+      timelineItem.className = 'timeline-item relative';
+      
+      // 设置不同类型的样式
+      let dotColor = 'border-star-yellow';
+      if (type === 'error') {
+        dotColor = 'border-red-400';
+        colorClass = 'text-red-300';
+      } else if (type === 'success') {
+        dotColor = 'border-green-400';
+        colorClass = 'text-green-300';
+      } else if (type === 'achievement') {
+        dotColor = 'border-star-yellow';
+        colorClass = 'text-star-yellow';
+      }
+      
+      timelineItem.innerHTML = `
+        <div class="timeline-dot ${dotColor}"></div>
+        <div class="bg-night-dark/70 p-3 rounded-lg shadow">
+          <div class="flex justify-between items-start">
+            <p class="${colorClass} font-medium">${message}</p>
+            <i class="fa ${icon} ml-2 text-sm text-white/60"></i>
+          </div>
+          <p class="text-xs text-white/50 mt-1">${timeString}</p>
+        </div>
+      `;
+      
+      // 添加到时间线容器
+      elements.timelineContainer.appendChild(timelineItem);
+      
+      // 滚动到底部
+      elements.timelineContainer.scrollTop = elements.timelineContainer.scrollHeight;
+      
+      // 记录到状态中
+      state.timelineItems.push({
+        time: now,
+        type,
+        message
+      });
+    }
+    
+    // 初始化倒计时
+    function startCountdown() {
+      if (state.countdownInterval) {
+        clearInterval(state.countdownInterval);
+      }
+      
+      state.countdownInterval = setInterval(() => {
+        if (state.isActive && state.countdown > 0) {
+          state.countdown--;
+          updateCountdownDisplay();
+          
+          if (state.countdown === 0) {
+            clearInterval(state.countdownInterval);
+            rewardStar();
+          }
+        }
+      }, 1000);
+    }
+    
+    // 更新倒计时显示
+    function updateCountdownDisplay() {
+      elements.countdown.textContent = state.countdown;
+      
+      if (state.countdown < 10) {
+        elements.countdown.classList.remove('text-star-yellow');
+        elements.countdown.classList.add('text-star-purple');
+      } else {
+        elements.countdown.classList.remove('text-star-purple');
+        elements.countdown.classList.add('text-star-yellow');
+      }
+    }
+    
+    // 重置倒计时 - 新增失败记录
+    function resetCountdown() {
+      if (!state.isActive) return;
+      
+      // 记录失败
+      addTimelineItem(
+        'error', 
+        `声音超过阈值 (${state.currentDb}dB)，重新开始计时`, 
+        'fa-exclamation-triangle'
+      );
+      
+      state.countdown = 60;
+      updateCountdownDisplay();
+      
+      if (state.soundEnabled) {
+        sounds.alert.currentTime = 0;
+        sounds.alert.play().catch(e => console.log("播放音效失败:", e));
+      }
+      
+      elements.statusText.textContent = "声音太大了！重新开始计时...";
+      elements.statusText.classList.add('text-red-400');
+      
+      setTimeout(() => {
+        if (state.isActive) {
+          elements.statusText.textContent = "保持安静，获取星星奖励！";
+          elements.statusText.classList.remove('text-red-400');
+        }
+      }, 2000);
+    }
+    
+    // 奖励星星 - 新增成就记录
+    function rewardStar() {
+      state.stars++;
+      updateStarsDisplay();
+      
+      // 记录星星获得
+      addTimelineItem(
+        'achievement', 
+        `成功保持安静60秒，获得1颗星星 (当前: ${state.stars}/3)`, 
+        'fa-star'
+      );
+      
+      if (state.soundEnabled) {
+        sounds.success.currentTime = 0;
+        sounds.success.play().catch(e => console.log("播放音效失败:", e));
+      }
+      
+      if (state.stars >= 3) {
+        state.stars = 0;
+        state.moons++;
+        updateStarsDisplay();
+        updateMoonsDisplay();
+        
+        // 记录月亮获得
+        addTimelineItem(
+          'achievement', 
+          `集齐3颗星星，获得1个月亮 (当前: ${state.moons}/3)`, 
+          'fa-moon-o'
+        );
+        
+        if (state.moons >= 3) {
+          state.moons = 0;
+          state.suns++;
+          updateMoonsDisplay();
+          updateSunsDisplay();
+          
+          // 记录太阳获得
+          addTimelineItem(
+            'achievement', 
+            `集齐3个月亮，获得1个太阳 (当前: ${state.suns}/3)`, 
+            'fa-sun-o'
+          );
+          
+          if (state.suns >= 3) {
+            state.suns = 0;
+            state.hasCrown = true;
+            updateSunsDisplay();
+            updateCrownDisplay();
+            
+            // 记录皇冠获得
+            addTimelineItem(
+              'achievement', 
+              `🎉 集齐3个太阳，获得终极皇冠！ 🎉`, 
+              'fa-trophy',
+              'text-star-yellow'
+            );
+          }
+        }
+      }
+      
+      showMiniCountdown();
+    }
+    
+    // 显示迷你倒计时
+    function showMiniCountdown() {
+      state.isActive = false;
+      elements.miniCountdown.classList.remove('hidden');
+      
+      let miniTime = 10;
+      elements.miniTimer.textContent = miniTime;
+      
+      const miniInterval = setInterval(() => {
+        miniTime--;
+        elements.miniTimer.textContent = miniTime;
+        
+        if (miniTime <= 0) {
+          clearInterval(miniInterval);
+          elements.miniCountdown.classList.add('hidden');
+          state.countdown = 60;
+          updateCountdownDisplay();
+          state.isActive = true;
+          startCountdown();
+          
+          // 记录新一轮开始
+          addTimelineItem(
+            'success', 
+            '新一轮静音挑战开始', 
+            'fa-play'
+          );
+        }
+      }, 1000);
+    }
+    
+    // 更新星星显示
+    function updateStarsDisplay() {
+      elements.starsCount.textContent = state.stars;
+      
+      [elements.star1, elements.star2, elements.star3].forEach(star => {
+        star.classList.remove('bg-star-yellow', 'star-glow');
+        star.classList.add('bg-night-dark');
+      });
+      
+      for (let i = 0; i < state.stars; i++) {
+        const star = [elements.star1, elements.star2, elements.star3][i];
+        star.classList.remove('bg-night-dark');
+        star.classList.add('bg-star-yellow', 'star-glow');
+      }
+    }
+    
+    // 更新月亮显示
+    function updateMoonsDisplay() {
+      elements.moonsCount.textContent = state.moons;
+      
+      [elements.moon1, elements.moon2, elements.moon3].forEach(moon => {
+        moon.classList.remove('bg-star-blue', 'moon-glow');
+        moon.classList.add('bg-night-dark');
+      });
+      
+      for (let i = 0; i < state.moons; i++) {
+        const moon = [elements.moon1, elements.moon2, elements.moon3][i];
+        moon.classList.remove('bg-night-dark');
+        moon.classList.add('bg-star-blue', 'moon-glow');
+      }
+    }
+    
+    // 更新太阳显示
+    function updateSunsDisplay() {
+      elements.sunsCount.textContent = state.suns;
+      
+      [elements.sun1, elements.sun2, elements.sun3].forEach(sun => {
+        sun.classList.remove('bg-orange-300', 'sun-glow');
+        sun.classList.add('bg-night-dark');
+      });
+      
+      for (let i = 0; i < state.suns; i++) {
+        const sun = [elements.sun1, elements.sun2, elements.sun3][i];
+        sun.classList.remove('bg-night-dark');
+        sun.classList.add('bg-orange-300', 'sun-glow');
+      }
+    }
+    
+    // 更新皇冠显示
+    function updateCrownDisplay() {
+      if (state.hasCrown) {
+        elements.crown.classList.remove('opacity-30');
+        elements.crown.classList.add('opacity-100', 'crown-glow', 'pulse-slow');
+        
+        if (state.soundEnabled) {
+          sounds.success.volume = 0.8;
+          sounds.success.currentTime = 0;
+          sounds.success.play().catch(e => console.log("播放音效失败:", e));
+        }
+      }
+    }
+    
+    // 初始化音频检测 - 新增挑战开始记录
+    function initAudio() {
+      if (state.stream) {
+        state.stream.getTracks().forEach(track => track.stop());
+      }
+      
+      try {
+        navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+          .then(stream => {
+            state.stream = stream;
+            
+            // 记录挑战开始时间
+            state.challengeStartTime = new Date();
+            addTimelineItem(
+              'success', 
+              '静音挑战开始，麦克风已启用', 
+              'fa-microphone'
+            );
+            
+            if (!state.audioContext) {
+              state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } else if (state.audioContext.state === 'suspended') {
+              state.audioContext.resume();
+            }
+            
+            state.analyser = state.audioContext.createAnalyser();
+            state.analyser.fftSize = 512;
+            state.analyser.minDecibels = -100;
+            state.analyser.maxDecibels = -30;
+            state.analyser.smoothingTimeConstant = 0.8;
+            
+            state.microphone = state.audioContext.createMediaStreamSource(stream);
+            state.microphone.connect(state.analyser);
+            
+            elements.statusText.textContent = "保持安静，获取星星奖励！";
+            elements.statusText.classList.remove('text-red-400');
+            elements.micPermission.disabled = true;
+            elements.micPermission.innerHTML = '<i class="fa fa-check text-white"></i><span>麦克风已启用</span>';
+            elements.micPermission.classList.remove('bg-star-blue', 'hover:bg-star-blue/80');
+            elements.micPermission.classList.add('bg-green-600');
+            
+            state.isActive = true;
+            startAudioAnalysis();
+            startCountdown();
+          })
+          .catch(err => {
+            console.error('麦克风访问失败:', err);
+            elements.statusText.textContent = '请允许麦克风权限以使用功能';
+            
+            // 记录错误
+            addTimelineItem(
+              'error', 
+              `麦克风访问失败: ${err.name}`, 
+              'fa-exclamation-circle'
+            );
+            
+            if (err.name === 'NotAllowedError') {
+              alert('请在浏览器设置中允许麦克风权限');
+            } else if (err.name === 'NotFoundError') {
+              alert('未检测到麦克风设备');
+            } else if (err.name === 'NotReadableError') {
+              alert('麦克风被占用，无法访问');
+            }
+          });
+      } catch (err) {
+        console.error('音频初始化失败:', err);
+        elements.statusText.textContent = '浏览器不支持音频功能';
+        
+        // 记录错误
+        addTimelineItem(
+          'error', 
+          '音频功能初始化失败', 
+          'fa-exclamation-circle'
+        );
+      }
+    }
+    
+    // 音频分析
+    function startAudioAnalysis() {
+      const bufferLength = state.analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      
+      function getDecibels() {
+        state.analyser.getByteFrequencyData(dataArray);
+        
+        let sum = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          sum += dataArray[i];
+        }
+        const average = sum / bufferLength;
+        
+        return Math.min(100, Math.max(30, Math.round(average * 0.7)));
+      }
+      
+      function updateAudio() {
+        if (!state.analyser) return;
+        
+        requestAnimationFrame(updateAudio);
+        
+        state.currentDb = getDecibels();
+        elements.decibelDisplay.textContent = state.currentDb;
+        
+        updateWaveAnimation(state.currentDb);
+        
+        if (state.isActive && state.currentDb > state.threshold) {
+          resetCountdown();
+        }
+      }
+      
+      updateAudio();
+    }
+    
+    // 更新声波动画
+    function updateWaveAnimation(db) {
+      const scale = Math.min(1, (db - 30) / 70);
+      
+      elements.waves.forEach((wave, index) => {
+        const baseHeights = [8, 12, 16, 12, 8];
+        const maxHeight = baseHeights[index] * (1 + scale * 4);
+        wave.style.height = `${maxHeight}px`;
+        wave.style.transition = 'height 0.1s ease, background-color 0.2s ease';
+        
+        if (db > state.threshold) {
+          wave.classList.remove('bg-star-yellow');
+          wave.classList.add('bg-red-400');
+        } else {
+          wave.classList.remove('bg-red-400');
+          wave.classList.add('bg-star-yellow');
+        }
+      });
+    }
+    
+    // 事件监听 - 重置按钮新增记录清空
+    elements.thresholdSlider.addEventListener('input', (e) => {
+      state.threshold = parseInt(e.target.value);
+      elements.thresholdValue.textContent = state.threshold;
+      
+      // 记录阈值调整
+      addTimelineItem(
+        'info', 
+        `静音阈值调整为 ${state.threshold}dB`, 
+        'fa-sliders'
+      );
+    });
+    
+    elements.soundToggle.addEventListener('click', () => {
+      state.soundEnabled = !state.soundEnabled;
+      
+      if (state.soundEnabled) {
+        elements.soundToggle.innerHTML = '<i class="fa fa-volume-up text-star-yellow"></i><span>音效: 开启</span>';
+        addTimelineItem('info', '音效已开启', 'fa-volume-up');
+      } else {
+        elements.soundToggle.innerHTML = '<i class="fa fa-volume-off text-star-yellow"></i><span>音效: 关闭</span>';
+        addTimelineItem('info', '音效已关闭', 'fa-volume-off');
+      }
+    });
+    
+    elements.resetBtn.addEventListener('click', () => {
+      // 记录重置操作
+      addTimelineItem(
+        'info', 
+        '挑战进度已重置', 
+        'fa-refresh'
+      );
+      
+      state.stars = 0;
+      state.moons = 0;
+      state.suns = 0;
+      state.hasCrown = false;
+      state.countdown = 60;
+      
+      updateCountdownDisplay();
+      updateStarsDisplay();
+      updateMoonsDisplay();
+      updateSunsDisplay();
+      updateCrownDisplay();
+      
+      if (state.soundEnabled) {
+        sounds.reset.currentTime = 0;
+        sounds.reset.play().catch(e => console.log("播放音效失败:", e));
+      }
+    });
+    
+    elements.micPermission.addEventListener('click', initAudio);
+    
+    // 页面清理
+    window.addEventListener('beforeunload', () => {
+      if (state.stream) {
+        state.stream.getTracks().forEach(track => track.stop());
+      }
+      if (state.countdownInterval) {
+        clearInterval(state.countdownInterval);
+      }
+    });
+    
+    // 初始化
+    window.addEventListener('load', () => {
+      updateCountdownDisplay();
+    });
+  </script>
+</body>
+</html>

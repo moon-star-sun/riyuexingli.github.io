@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>水果单词消消乐</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: white;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .info-item {
+            text-align: center;
+        }
+        
+        .info-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .info-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .game-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-gap: 10px;
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 20px;
+        }
+        
+        .card {
+            aspect-ratio: 1;
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card.selected {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 3px #FFD700;
+        }
+        
+        .card.matched {
+            visibility: hidden;
+            opacity: 0;
+            transform: scale(0);
+        }
+        
+        .card.fruit {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+        }
+        
+        .card.word {
+            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+        }
+        
+        .fruit-emoji {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .word-text {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .message {
+            font-size: 1.5rem;
+            margin-top: 10px;
+            text-align: center;
+            min-height: 40px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+        }
+        
+        button {
+            padding: 12px 25px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            background: #FFD700;
+            color: #333;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .round-indicator {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+            gap: 10px;
+        }
+        
+        .round-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .round-dot.active {
+            background: #FFD700;
+        }
+        
+        .instructions {
+            max-width: 500px;
+            margin-top: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        @media (max-width: 500px) {
+            .game-container {
+                grid-gap: 8px;
+            }
+            
+            .fruit-emoji {
+                font-size: 2rem;
+            }
+            
+            .word-text {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>水果单词消消乐</h1>
+        <p>点击水果图片和对应的英文单词进行匹配消除</p>
+    </div>
+    
+    <div class="game-info">
+        <div class="info-item">
+            <div class="info-label">本轮匹配</div>
+            <div class="info-value" id="matches">0/8</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">得分</div>
+            <div class="info-value" id="score">0</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">轮次</div>
+            <div class="info-value" id="round">1/3</div>
+        </div>
+    </div>
+    
+    <div class="game-container" id="game-board">
+        <!-- 游戏卡片将通过JavaScript动态生成 -->
+    </div>
+    
+    <div class="message" id="message">点击开始游戏！</div>
+    
+    <div class="controls">
+        <button id="start-btn">开始游戏</button>
+        <button id="reset-btn">重新开始</button>
+    </div>
+    
+    <div class="round-indicator">
+        <div class="round-dot active" id="round-1"></div>
+        <div class="round-dot" id="round-2"></div>
+        <div class="round-dot" id="round-3"></div>
+    </div>
+    
+    <div class="instructions">
+        <h3>游戏说明：</h3>
+        <p>1. 点击一个水果图片，再点击对应的英文单词，如果匹配正确，两个方块都会消失</p>
+        <p>2. 匹配正确会播放"答对了"并朗读单词发音</p>
+        <p>3. 匹配错误会提示"答错了"</p>
+        <p>4. 完成所有匹配后进入下一轮，共3轮</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 游戏配置
+            const config = {
+                totalRounds: 3,
+                currentRound: 1,
+                matchesPerRound: 8,
+                currentMatches: 0,
+                score: 0,
+                selectedCard: null,
+                isProcessing: false,
+                gameStarted: false
+            };
+            
+            // 水果数据
+            const fruits = [
+                { emoji: '🍎', word: 'Apple' },
+                { emoji: '🍌', word: 'Banana' },
+                { emoji: '🍊', word: 'Orange' },
+                { emoji: '🍓', word: 'Strawberry' },
+                { emoji: '🍇', word: 'Grape' },
+                { emoji: '🍉', word: 'Watermelon' },
+                { emoji: '🍑', word: 'Peach' },
+                { emoji: '🍐', word: 'Pear' }
+            ];
+            
+            // DOM元素
+            const gameBoard = document.getElementById('game-board');
+            const matchesElement = document.getElementById('matches');
+            const scoreElement = document.getElementById('score');
+            const roundElement = document.getElementById('round');
+            const messageElement = document.getElementById('message');
+            const startBtn = document.getElementById('start-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const roundIndicators = [
+                document.getElementById('round-1'),
+                document.getElementById('round-2'),
+                document.getElementById('round-3')
+            ];
+            
+            // 初始化游戏
+            function initGame() {
+                config.currentRound = 1;
+                config.currentMatches = 0;
+                config.score = 0;
+                config.gameStarted = false;
+                
+                updateUI();
+                messageElement.textContent = "点击开始游戏！";
+                gameBoard.innerHTML = "";
+                
+                // 重置轮次指示器
+                roundIndicators.forEach((indicator, index) => {
+                    indicator.classList.toggle('active', index === 0);
+                });
+            }
+            
+            // 开始游戏
+            function startGame() {
+                if (config.gameStarted) return;
+                
+                config.gameStarted = true;
+                config.currentMatches = 0;
+                updateUI();
+                messageElement.textContent = "请点击水果和对应的单词进行匹配！";
+                
+                // 创建游戏卡片
+                createCards();
+            }
+            
+            // 创建卡片
+            function createCards() {
+                gameBoard.innerHTML = "";
+                
+                // 复制水果数据并打乱顺序
+                const shuffledFruits = [...fruits].sort(() => Math.random() - 0.5);
+                
+                // 创建水果卡片和单词卡片
+                shuffledFruits.forEach(fruit => {
+                    // 水果卡片
+                    const fruitCard = document.createElement('div');
+                    fruitCard.className = 'card fruit';
+                    fruitCard.dataset.type = 'fruit';
+                    fruitCard.dataset.fruit = fruit.word;
+                    
+                    const fruitEmoji = document.createElement('div');
+                    fruitEmoji.className = 'fruit-emoji';
+                    fruitEmoji.textContent = fruit.emoji;
+                    
+                    fruitCard.appendChild(fruitEmoji);
+                    gameBoard.appendChild(fruitCard);
+                    
+                    // 单词卡片
+                    const wordCard = document.createElement('div');
+                    wordCard.className = 'card word';
+                    wordCard.dataset.type = 'word';
+                    wordCard.dataset.fruit = fruit.word;
+                    
+                    const wordText = document.createElement('div');
+                    wordText.className = 'word-text';
+                    wordText.textContent = fruit.word;
+                    
+                    wordCard.appendChild(wordText);
+                    gameBoard.appendChild(wordCard);
+                });
+                
+                // 打乱所有卡片的位置
+                const cards = Array.from(gameBoard.children);
+                cards.sort(() => Math.random() - 0.5);
+                
+                // 重新添加到游戏板
+                cards.forEach(card => gameBoard.appendChild(card));
+                
+                // 添加点击事件
+                cards.forEach(card => {
+                    card.addEventListener('click', () => handleCardClick(card));
+                });
+            }
+            
+            // 处理卡片点击
+            function handleCardClick(card) {
+                if (!config.gameStarted || config.isProcessing || card.classList.contains('matched')) {
+                    return;
+                }
+                
+                // 如果已经选中了一张卡片
+                if (config.selectedCard) {
+                    // 如果点击的是同一张卡片，取消选择
+                    if (config.selectedCard === card) {
+                        config.selectedCard.classList.remove('selected');
+                        config.selectedCard = null;
+                        return;
+                    }
+                    
+                    config.isProcessing = true;
+                    
+                    // 检查是否匹配
+                    const isMatch = checkMatch(config.selectedCard, card);
+                    
+                    if (isMatch) {
+                        // 匹配成功
+                        handleMatch(config.selectedCard, card);
+                    } else {
+                        // 匹配失败
+                        handleMismatch(config.selectedCard, card);
+                    }
+                    
+                    config.selectedCard = null;
+                } else {
+                    // 选中第一张卡片
+                    config.selectedCard = card;
+                    card.classList.add('selected');
+                }
+            }
+            
+            // 检查是否匹配
+            function checkMatch(card1, card2) {
+                const type1 = card1.dataset.type;
+                const type2 = card2.dataset.type;
+                const fruit1 = card1.dataset.fruit;
+                const fruit2 = card2.dataset.fruit;
+                
+                // 确保一个是水果，一个是单词，并且是相同的水果
+                return (
+                    ((type1 === 'fruit' && type2 === 'word') || 
+                     (type1 === 'word' && type2 === 'fruit')) &&
+                    fruit1 === fruit2
+                );
+            }
+            
+            // 处理匹配成功
+            function handleMatch(card1, card2) {
+                // 播放正确音效
+                playCorrectSound();
+                
+                // 朗读单词
+                speakWord(card1.dataset.fruit);
+                
+                // 更新消息
+                messageElement.textContent = "答对了！";
+                
+                // 标记为已匹配
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                
+                // 更新游戏状态
+                config.currentMatches++;
+                config.score += 10;
+                
+                updateUI();
+                
+                // 检查是否完成本轮
+                if (config.currentMatches >= config.matchesPerRound) {
+                    setTimeout(() => {
+                        nextRound();
+                    }, 1500);
+                }
+                
+                config.isProcessing = false;
+            }
+            
+            // 处理匹配失败
+            function handleMismatch(card1, card2) {
+                // 更新消息
+                messageElement.textContent = "答错了！";
+                
+                // 播放错误音效
+                playWrongSound();
+                
+                // 短暂显示错误状态
+                card1.classList.add('selected');
+                card2.classList.add('selected');
+                
+                setTimeout(() => {
+                    card1.classList.remove('selected');
+                    card2.classList.remove('selected');
+                    config.isProcessing = false;
+                    
+                    // 清除错误消息
+                    setTimeout(() => {
+                        if (messageElement.textContent === "答错了！") {
+                            messageElement.textContent = "请继续匹配！";
+                        }
+                    }, 1000);
+                }, 1000);
+            }
+            
+            // 进入下一轮
+            function nextRound() {
+                config.currentRound++;
+                
+                if (config.currentRound > config.totalRounds) {
+                    // 游戏结束
+                    messageElement.textContent = `游戏结束！最终得分: ${config.score}`;
+                    config.gameStarted = false;
+                } else {
+                    // 开始下一轮
+                    messageElement.textContent = `第 ${config.currentRound} 轮开始！`;
+                    config.currentMatches = 0;
+                    updateUI();
+                    
+                    // 更新轮次指示器
+                    roundIndicators.forEach((indicator, index) => {
+                        indicator.classList.toggle('active', index === config.currentRound - 1);
+                    });
+                    
+                    // 创建新卡片
+                    setTimeout(() => {
+                        createCards();
+                    }, 1000);
+                }
+            }
+            
+            // 更新UI
+            function updateUI() {
+                matchesElement.textContent = `${config.currentMatches}/${config.matchesPerRound}`;
+                scoreElement.textContent = config.score;
+                roundElement.textContent = `${config.currentRound}/${config.totalRounds}`;
+            }
+            
+            // 播放正确音效
+            function playCorrectSound() {
+                // 这里可以使用Web Audio API或HTML5 Audio
+                // 简化实现：使用浏览器语音合成
+                try {
+                    const utterance = new SpeechSynthesisUtterance("答对了");
+                    utterance.lang = 'zh-CN';
+                    utterance.rate = 1.2;
+                    speechSynthesis.speak(utterance);
+                } catch (e) {
+                    console.log("语音播放不支持");
+                }
+            }
+            
+            // 播放错误音效
+            function playWrongSound() {
+                try {
+                    const utterance = new SpeechSynthesisUtterance("答错了");
+                    utterance.lang = 'zh-CN';
+                    utterance.rate = 1.2;
+                    speechSynthesis.speak(utterance);
+                } catch (e) {
+                    console.log("语音播放不支持");
+                }
+            }
+            
+            // 朗读单词
+            function speakWord(word) {
+                try {
+                    const utterance = new SpeechSynthesisUtterance(word);
+                    utterance.lang = 'en-US';
+                    utterance.rate = 0.8;
+                    speechSynthesis.speak(utterance);
+                } catch (e) {
+                    console.log("单词朗读不支持");
+                }
+            }
+            
+            // 事件监听
+            startBtn.addEventListener('click', startGame);
+            resetBtn.addEventListener('click', initGame);
+            
+            // 初始化游戏
+            initGame();
+        });
+    </script>
+</body>
+</html>
